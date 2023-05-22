@@ -1,24 +1,22 @@
-import React from "react";
-import "./App.css";
+import React, { useState } from "react";
+import { Box } from "@chakra-ui/react";
+import TranslatorForm from "./components/TranslatorForm";
+import TranslationResult from "./components/TranslationResult";
 
-function App() {
+const App: React.FC = () => {
+  const [translationResult, setTranslationResult] = useState("");
+
+  const translate = async (srcLang: string, tgtLang: string, text: string) => {
+    // Call your translation API here and get the result
+    // setTranslationResult(result);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box>
+      <TranslatorForm onTranslate={translate} />
+      <TranslationResult result={translationResult} />
+    </Box>
   );
-}
+};
 
 export default App;
