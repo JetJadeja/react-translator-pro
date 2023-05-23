@@ -9,10 +9,15 @@ import {
   Text,
   Center,
   CircularProgress,
+  VStack,
+  HStack,
+  Flex,
+  Spacer,
 } from "@chakra-ui/react";
-import { SunIcon, MoonIcon } from "@chakra-ui/icons";
+import { SunIcon, MoonIcon, RepeatIcon } from "@chakra-ui/icons";
 import React, { useState } from "react";
 import axios from "axios";
+import languages from "./data/languages";
 
 interface TranslatorFormProps {
   onTranslate: (srcLang: string, tgtLang: string, text: string) => void;
@@ -27,13 +32,16 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
   const [loading, setLoading] = useState(false);
   const [translationResult, setTranslationResult] = useState("");
 
-  // Handle translation
-  const handleTranslate = async () => {
-    // Loading bar
-    setLoading(true);
+  const swapLanguages = () => {
+    setSrcLang(tgtLang);
+    setTgtLang(srcLang);
+    setText(translationResult);
+    setTranslationResult(text);
+  };
 
+  const handleTranslate = async () => {
+    setLoading(true);
     try {
-      console.log("Key", process.env.REACT_APP_OPENAI_API_KEY);
       const response = await axios.post(
         "https://api.openai.com/v1/chat/completions",
         {
@@ -54,9 +62,7 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
         }
       );
 
-      // Get the translated text from the API response
       const translatedText = response.data.choices[0].message.content;
-      console.log(translatedText);
       setTranslationResult(translatedText);
     } catch (error) {
       console.error("Error occurred while translating:", error);
@@ -72,68 +78,84 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
       borderRadius="md"
       bg={colorMode === "dark" ? "gray.800" : "white"}
     >
-      <Center mb={5}>
+      <HStack justifyContent="space-between" mb={5}>
         <Text fontSize="2xl">Translator Pro</Text>
         <IconButton
-          ml={3}
           icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />}
           onClick={toggleColorMode}
           aria-label="toggle"
         />
-      </Center>
+      </HStack>
+
       <Divider mb={5} />
 
-      <Select
-        value={srcLang}
-        onChange={(e) => setSrcLang(e.target.value)}
-        mb={3}
-      >
-        <option value="en">English</option>
-        <option value="fr">French</option>
-        // Add more languages as required
-      </Select>
+      <HStack mb={3}>
+        <Select
+          value={srcLang}
+          onChange={(e) => setSrcLang(e.target.value)}
+          width="48%"
+        >
+          {languages.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.name}
+            </option>
+          ))}
+        </Select>
 
-      <Select
-        value={tgtLang}
-        onChange={(e) => setTgtLang(e.target.value)}
-        mb={3}
-      >
-        <option value="en">English</option>
-        <option value="fr">French</option>
-        // Add more languages as required
-      </Select>
+        <Spacer />
 
-      <Textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Enter text here"
-        bg={colorMode === "dark" ? "gray.900" : "gray.100"}
-        height="150px"
-        mb={3}
-      />
+        <Select
+          value={tgtLang}
+          onChange={(e) => setTgtLang(e.target.value)}
+          width="48%"
+        >
+          {languages.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.name}
+            </option>
+          ))}
+        </Select>
+      </HStack>
 
-      <Button colorScheme="blue" onClick={handleTranslate}>
-        Translate
-      </Button>
+      <VStack spacing={3}>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Enter text here"
+          bg={colorMode === "dark" ? "gray.900" : "gray.100"}
+          height="150px"
+        />
 
-      {loading && (
-        <Center mt={5}>
-          <CircularProgress isIndeterminate color="blue.500" />
-        </Center>
-      )}
-      <Box mt={5} mb={3}>
-        <Text fontSize="xl">Translation Result:</Text>
-        <Text>{translationResult}</Text>
-      </Box>
+        <Textarea
+          value={extraInfo}
+          onChange={(e) => setExtraInfo(e.target.value)}
+          placeholder="Enter extra information here"
+          bg={colorMode === "dark" ? "gray.900" : "gray.100"}
+          height="100px"
+        />
 
-      <Textarea
-        value={extraInfo}
-        onChange={(e) => setExtraInfo(e.target.value)}
-        placeholder="Enter extra information here"
-        bg={colorMode === "dark" ? "gray.900" : "gray.100"}
-        height="150px"
-        mb={3}
-      />
+        <Button
+          colorScheme="blue"
+          onClick={handleTranslate}
+          isLoading={loading}
+        >
+          Translate
+        </Button>
+
+        {loading && (
+          <Center mt={5}>
+            <CircularProgress isIndeterminate color="blue.500" />
+          </Center>
+        )}
+
+        <Textarea
+          value={translationResult}
+          isReadOnly
+          placeholder="Translation will appear here"
+          bg={colorMode === "dark" ? "gray.900" : "gray.100"}
+          height="150px"
+        />
+      </VStack>
     </Box>
   );
 };
