@@ -8,9 +8,11 @@ import {
   Divider,
   Text,
   Center,
+  CircularProgress,
 } from "@chakra-ui/react";
 import { SunIcon, MoonIcon } from "@chakra-ui/icons";
 import React, { useState } from "react";
+import axios from "axios";
 
 interface TranslatorFormProps {
   onTranslate: (srcLang: string, tgtLang: string, text: string) => void;
@@ -21,9 +23,46 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
   const [srcLang, setSrcLang] = useState("en");
   const [tgtLang, setTgtLang] = useState("fr");
   const [text, setText] = useState("");
+  const [extraInfo, setExtraInfo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [translationResult, setTranslationResult] = useState("");
 
-  const handleTranslate = () => {
-    onTranslate(srcLang, tgtLang, text);
+  // Handle translation
+  const handleTranslate = async () => {
+    // Loading bar
+    setLoading(true);
+
+    try {
+      console.log("Key", process.env.REACT_APP_OPENAI_API_KEY);
+      const response = await axios.post(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: `${text} \n\n Translate the ${srcLang} text to ${tgtLang}. ${extraInfo}`,
+            },
+            { role: "user", content: text },
+          ],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
+          },
+        }
+      );
+
+      // Get the translated text from the API response
+      const translatedText = response.data.choices[0].message.content;
+      console.log(translatedText);
+      setTranslationResult(translatedText);
+    } catch (error) {
+      console.error("Error occurred while translating:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,6 +78,7 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
           ml={3}
           icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />}
           onClick={toggleColorMode}
+          aria-label="toggle"
         />
       </Center>
       <Divider mb={5} />
@@ -75,6 +115,25 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
       <Button colorScheme="blue" onClick={handleTranslate}>
         Translate
       </Button>
+
+      {loading && (
+        <Center mt={5}>
+          <CircularProgress isIndeterminate color="blue.500" />
+        </Center>
+      )}
+      <Box mt={5} mb={3}>
+        <Text fontSize="xl">Translation Result:</Text>
+        <Text>{translationResult}</Text>
+      </Box>
+
+      <Textarea
+        value={extraInfo}
+        onChange={(e) => setExtraInfo(e.target.value)}
+        placeholder="Enter extra information here"
+        bg={colorMode === "dark" ? "gray.900" : "gray.100"}
+        height="150px"
+        mb={3}
+      />
     </Box>
   );
 };
