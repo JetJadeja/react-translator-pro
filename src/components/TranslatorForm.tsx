@@ -25,8 +25,8 @@ interface TranslatorFormProps {
 
 const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
   const { colorMode, toggleColorMode } = useColorMode();
-  const [srcLang, setSrcLang] = useState("en");
-  const [tgtLang, setTgtLang] = useState("fr");
+  const [srcLang, setSrcLang] = useState("English");
+  const [tgtLang, setTgtLang] = useState("French");
   const [text, setText] = useState("");
   const [extraInfo, setExtraInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,7 +96,7 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
           width="48%"
         >
           {languages.map((lang) => (
-            <option key={lang.code} value={lang.code}>
+            <option key={lang.name} value={lang.name}>
               {lang.name}
             </option>
           ))}
@@ -110,7 +110,7 @@ const TranslatorForm: React.FC<TranslatorFormProps> = ({ onTranslate }) => {
           width="48%"
         >
           {languages.map((lang) => (
-            <option key={lang.code} value={lang.code}>
+            <option key={lang.name} value={lang.name}>
               {lang.name}
             </option>
           ))}
